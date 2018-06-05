@@ -3,7 +3,6 @@
 import copy
 import inspect
 
-
 from rest_framework import permissions
 
 
@@ -69,9 +68,9 @@ class BaseComposedPermission(permissions.BasePermission):
 
         return _permission_set
 
-    def has_permission(self, request, view):
+    def has_permission(self, *args, **kwargs):
         permission_set = self._evaluate_permission_set(self.global_permission_set)
-        return permission_set.has_permission(self, request, view)
+        return permission_set.has_permission(self, *args, **kwargs)
 
     def has_object_permission(self, request, view, obj):
         permission_set = self._evaluate_permission_set(self.object_permission_set)
@@ -84,12 +83,12 @@ class BasePermissionComponent(object):
     Is a unit permission class.
     """
 
-    def has_permission(self, permission, request, view):
+    def has_permission(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def has_object_permission(self, permission, request, view, obj):
+    def has_object_permission(self, *args, **kwargs):
         # By default return same as that "has_permission" method
-        return self.has_permission(permission, request, view)
+        return self.has_permission(*args, **kwargs)
 
     def __and__(self, component):
         return And(self, component)
@@ -113,13 +112,12 @@ class BasePermissionSet(object):
     def _check_permission(self, method_name, *args, **kwargs):
         raise NotImplementedError()
 
-    def has_permission(self, permission, request, view):
-        return self._check_permission("has_permission", permission,
-                                      request, view)
+    def has_permission(self, *args, **kwargs):
+        return self._check_permission("has_permission", *args, **kwargs)
 
-    def has_object_permission(self, permission, request, view, obj):
-        return self._check_permission("has_object_permission", permission,
-                                      request, view, obj)
+    def has_object_permission(self, *args, **kwargs):
+        return self._check_permission("has_object_permission", *args, **kwargs)
+
     def __invert__(self):
         return Not(self)
 
@@ -172,6 +170,6 @@ class And(BasePermissionSet):
 
     def __or__(self, component):
         return Or(self, component)
-        
+
 #Alias to old typo for backwards compatability
 BaseComposedPermision = BaseComposedPermission
